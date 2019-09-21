@@ -1,13 +1,23 @@
-import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.io.File;
 
 class PhotoProcessing {
     protected static BufferedImage toBlackAndWhite (BufferedImage image){// Настроить
-         int height = image.getHeight();
-         int width =image.getWidth();
+        double medianaLumen = 0;
+        int height = image.getHeight();
+        int width = image.getWidth();
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++) {
+                int p = image.getRGB(i, j);
+                int a = (p >> 24) & 0xff;
+                int r = (p >> 16) & 0xff;
+                int g = (p >> 8) & 0xff;
+                int b = p & 0xff;
+                double l = (float) (0.299 * r + 0.587 * g + 0.114 * b);
+                medianaLumen += l;
+            }
+        double mLumen = medianaLumen / (width * height);
+
         for ( int i = 0; i < width; i++)
             for ( int j = 0; j < height; j++){
                 int p = image.getRGB(i, j);
@@ -18,7 +28,7 @@ class PhotoProcessing {
 
                 float lumen = (float) (0.299*r + 0.587*g + 0.114*b);
 
-                if(lumen<100)
+                if (lumen < mLumen)
                     p = (a<<24) | (0<<16) | (0<<8) | (0);
                 else
                     p = (a<<24) | (255<<16) | (255<<8) | (255);

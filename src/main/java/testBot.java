@@ -76,8 +76,8 @@ public class testBot extends TelegramLongPollingBot {
                 return;
             }
             String tesseractResult = "Original Photo: \n"+ tesseractProcessing.doOcr(image)+"\n";
-           // BufferedImage bradlyimage = PhotoProcessing.BradlyAlgorithm(image);
-            BufferedImage processedImage = PhotoProcessing.BradlyAlgorithm(image);
+            BufferedImage bradlyimage = PhotoProcessing.BradlyAlgorithm(image);
+            BufferedImage processedImage = PhotoProcessing.toBlackAndWhite(bradlyimage);
             String tesseractResultBlackAndWhite = "Black And White:\n"+tesseractProcessing.doOcr(processedImage);
             SendMessage sendMessage1 = new SendMessage().setChatId(chat_id).setText(tesseractResult);
             SendMessage sendMessage2 =new SendMessage().setChatId(chat_id).setText(tesseractResultBlackAndWhite);
