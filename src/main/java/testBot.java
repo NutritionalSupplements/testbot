@@ -1,5 +1,3 @@
-import net.sourceforge.tess4j.Tesseract;
-import org.apache.commons.io.IOUtils;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -12,23 +10,20 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
-
 import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.net.MalformedURLException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-import java.util.Comparator;
 import java.util.List;
 
 
 
 public class testBot extends TelegramLongPollingBot {
 
-    TesseractProcessing tesseractProcessing= new TesseractProcessing();
+    private TesseractProcessing tesseractProcessing = new TesseractProcessing();
     enum  variants { // для выбора варианта внешней клавы
         FIRST("Первый ингридиент"),
         SECOND("Второй ингридиент"),
@@ -64,21 +59,21 @@ public class testBot extends TelegramLongPollingBot {
             List<PhotoSize> photos = update.getMessage().getPhoto();
             GetFile getFileRequest = new GetFile();
             getFileRequest.setFileId(photos.get(photos.size()-1).getFileId());// индекс 2 - самое нормальное качество.
-            File file = null;
+            File file;
             try {
                 file = execute(getFileRequest);
             } catch (TelegramApiException e) {
                 e.printStackTrace();
+                return;
             }
-            URL url= null;
-            BufferedImage image = null;
+            URL url;
+            BufferedImage image;
             try {
               url = new URL(file.getFileUrl(this.getBotToken()));
               image = ImageIO.read(url);
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+                return;
             }
             String tesseractResult = "Original Photo: \n"+ tesseractProcessing.doOcr(image)+"\n";
            // BufferedImage bradlyimage = PhotoProcessing.BradlyAlgorithm(image);
@@ -97,10 +92,8 @@ public class testBot extends TelegramLongPollingBot {
                 execute(sendMessage1);
                 execute(sendMessage2);
 
-            } catch (TelegramApiException e) {
+            } catch (TelegramApiException | IOException e) {
                 e.printStackTrace();
-            } catch (IOException t) {
-                t.printStackTrace();
             }
 
         }
