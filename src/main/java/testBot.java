@@ -24,29 +24,9 @@ import java.util.List;
 public class testBot extends TelegramLongPollingBot {
 
     private TesseractProcessing tesseractProcessing = new TesseractProcessing();
-    enum  variants { // для выбора варианта внешней клавы
-        FIRST("Первый ингридиент"),
-        SECOND("Второй ингридиент"),
-        THIRD("Третий ингридиент"),
-        FOURTH("Четвертый ингридиент"),
-        FIFTH("Пятый ингридиент");
 
-        private  String title;
-        variants(String s) {
-           title = s;
-        }
-        public String getTitle (){
 
-            return title;
-        }
-    }
 
-    public boolean hasTitleInEnum(String str){ // для проверки, есть ли такой вариант сообщения в константах внешней клавы
-        for(variants var : variants.values())
-            if(var.title.equals(str))
-                return true;
-         return false;
-    }
     public void onUpdateReceived(Update update) {
         SendMessage message = new SendMessage();
 
@@ -78,11 +58,9 @@ public class testBot extends TelegramLongPollingBot {
             String tesseractResult = "Original Photo: \n"+ tesseractProcessing.doOcr(image)+"\n";
             BufferedImage bradlyimage = PhotoProcessing.BradlyAlgorithm(image);
             BufferedImage processedImage = PhotoProcessing.toBlackAndWhite(bradlyimage);
-            String tesseractResultBlackAndWhite = "Black And White:\n"+tesseractProcessing.doOcr(processedImage);
+            String tesseractResultBlackAndWhite = "Black And White + bradly:\n" + tesseractProcessing.doOcr(processedImage);
             SendMessage sendMessage1 = new SendMessage().setChatId(chat_id).setText(tesseractResult);
             SendMessage sendMessage2 =new SendMessage().setChatId(chat_id).setText(tesseractResultBlackAndWhite);
-            /* Тут лежит проверка на то, что в фото реально записалось присланной пользователем.
-            Отправляет фото в формате JPG обратно пользователю.*/
             try {
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
                 ImageIO.write(processedImage,"jpg", os);
