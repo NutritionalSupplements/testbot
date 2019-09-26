@@ -2,10 +2,10 @@ import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 
-public class TesseractProcessing {
-    static Tesseract tesseract;
+class TesseractProcessing {
+
+    private static Tesseract tesseract;
    static {
 
          tesseract = new Tesseract();
@@ -14,7 +14,8 @@ public class TesseractProcessing {
 
     }
 
-    protected String doOcr (BufferedImage image){
+
+    String doOcr(BufferedImage image) {
         String text = null;
         try {
             text = tesseract.doOCR(image);

@@ -2,7 +2,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 
 class PhotoProcessing {
-    protected static BufferedImage toBlackAndWhite (BufferedImage image){// Настроить
+    static BufferedImage toBlackAndWhite(BufferedImage image) {// Настроить
         double medianaLumen = 0;
         int height = image.getHeight();
         int width = image.getWidth();
@@ -40,6 +40,8 @@ class PhotoProcessing {
         return image;
     }
 
+
+    //doesnt do_ what we want. But I leave it here yet. May be usefull
     protected static BufferedImage BradlyAlgorithm (BufferedImage image){
         int width = image.getWidth(null);
         int height = image.getHeight(null);
@@ -47,19 +49,18 @@ class PhotoProcessing {
         final int s2 = S / 2;
         float t = (float) 0.15;
         long[]integral_image;
-        long sum = 0;
-        int count = 0;
+        long sum;
+        int count;
         int index;
         int x1, y1, x2, y2;
         byte[] src;
         byte[] res;
 
-        //выход и ввод пока одинаковые. создаем по одному изображению, для одинаковых размеров
         src = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
         res= ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 
 
-        //рассчитываем интегральное изображение
+        //find integral image
         integral_image = new long [width*height*Long.SIZE];
 
         for (int i = 0; i < width; i++) {
@@ -74,7 +75,7 @@ class PhotoProcessing {
             }
         }
 
-        //находим границы для локальные областей
+        //find lokal areas
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
                 index = j  + i;

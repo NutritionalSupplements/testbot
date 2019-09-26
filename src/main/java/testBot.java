@@ -38,7 +38,7 @@ public class testBot extends TelegramLongPollingBot {
             SendPhoto sendPhoto = new SendPhoto();
             List<PhotoSize> photos = update.getMessage().getPhoto();
             GetFile getFileRequest = new GetFile();
-            getFileRequest.setFileId(photos.get(photos.size()-1).getFileId());// индекс 2 - самое нормальное качество.
+            getFileRequest.setFileId(photos.get(photos.size() - 1).getFileId());// index 2 - the quality of the photo, what we need
             File file;
             try {
                 file = execute(getFileRequest);
@@ -56,8 +56,7 @@ public class testBot extends TelegramLongPollingBot {
                 return;
             }
             String tesseractResult = "Original Photo: \n"+ tesseractProcessing.doOcr(image)+"\n";
-            BufferedImage bradlyimage = PhotoProcessing.BradlyAlgorithm(image);
-            BufferedImage processedImage = PhotoProcessing.toBlackAndWhite(bradlyimage);
+            BufferedImage processedImage = PhotoProcessing.toBlackAndWhite(image);
             String tesseractResultBlackAndWhite = "Black And White + bradly:\n" + tesseractProcessing.doOcr(processedImage);
             SendMessage sendMessage1 = new SendMessage().setChatId(chat_id).setText(tesseractResult);
             SendMessage sendMessage2 =new SendMessage().setChatId(chat_id).setText(tesseractResultBlackAndWhite);
