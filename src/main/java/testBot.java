@@ -26,7 +26,6 @@ public class testBot extends TelegramLongPollingBot {
     private TesseractProcessing tesseractProcessing = new TesseractProcessing();
 
 
-
     public void onUpdateReceived(Update update) {
         SendMessage message = new SendMessage();
 
