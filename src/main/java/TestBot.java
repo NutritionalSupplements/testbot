@@ -1,3 +1,4 @@
+import org.apache.log4j.Logger;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -20,19 +21,27 @@ import java.net.URL;
 import java.util.List;
 
 
-
-public class testBot extends TelegramLongPollingBot {
+public class TestBot extends TelegramLongPollingBot {
 
     private TesseractProcessing tesseractProcessing = new TesseractProcessing();
 
+    private static final Logger logger = Logger.getLogger(TestBot.class.getName());
 
     public void onUpdateReceived(Update update) {
+
+
         SendMessage message = new SendMessage();
 
         if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("/start")) {
             message.setChatId(update.getMessage().getChatId());
             message.setText("Пришли фото состава или ингридиент, про который хотел узнать");
+
+            logger.debug("User: " + update.getMessage().getFrom().getUserName() + " wrote:" + update.getMessage().getText());
+
         } else if (update.hasMessage() && update.getMessage().hasPhoto()) {
+
+            logger.debug("User: " + update.getMessage().getFrom().getUserName() + " sent a photo");
+
             long chat_id = update.getMessage().getChatId();
             SendPhoto sendPhoto = new SendPhoto();
             List<PhotoSize> photos = update.getMessage().getPhoto();
@@ -42,21 +51,21 @@ public class testBot extends TelegramLongPollingBot {
             try {
                 file = execute(getFileRequest);
             } catch (TelegramApiException e) {
-                e.printStackTrace();
+                logger.error(e.getStackTrace());
                 return;
             }
             URL url;
             BufferedImage image;
             try {
-              url = new URL(file.getFileUrl(this.getBotToken()));
-              image = ImageIO.read(url);
+                url = new URL(file.getFileUrl(this.getBotToken()));
+                image = ImageIO.read(url);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error(e.getStackTrace());
                 return;
             }
             String tesseractResult = "Original Photo: \n"+ tesseractProcessing.doOcr(image)+"\n";
             BufferedImage processedImage = PhotoProcessing.toBlackAndWhite(image);
-            String tesseractResultBlackAndWhite = "Black And White + bradly:\n" + tesseractProcessing.doOcr(processedImage);
+            String tesseractResultBlackAndWhite = "Black And White:\n" + tesseractProcessing.doOcr(processedImage);
             SendMessage sendMessage1 = new SendMessage().setChatId(chat_id).setText(tesseractResult);
             SendMessage sendMessage2 =new SendMessage().setChatId(chat_id).setText(tesseractResultBlackAndWhite);
             try {
@@ -69,13 +78,11 @@ public class testBot extends TelegramLongPollingBot {
                 execute(sendMessage2);
 
             } catch (TelegramApiException | IOException e) {
-                e.printStackTrace();
+                logger.error(e.getStackTrace());
             }
 
         }
     }
-
-
 
 
     public String getBotUsername() {
@@ -85,11 +92,12 @@ public class testBot extends TelegramLongPollingBot {
     public String getBotToken() {
         return "904066555:AAGZCo-sezfxXeYyiQJOpGV6na8KSvxT6tU";
     }
+
     public static void main(String[] args) {
         ApiContextInitializer.init();
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
         try {
-            telegramBotsApi.registerBot(new testBot());
+            telegramBotsApi.registerBot(new TestBot());
         } catch (TelegramApiRequestException e) {
             e.printStackTrace();
         }
