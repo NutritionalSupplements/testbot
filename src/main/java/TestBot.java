@@ -2,86 +2,45 @@ import org.apache.log4j.Logger;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.File;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.List;
+import java.sql.SQLException;
 
 
 public class TestBot extends TelegramLongPollingBot {
 
-    private TesseractProcessing tesseractProcessing = new TesseractProcessing();
+
 
     private static final Logger logger = Logger.getLogger(TestBot.class.getName());
+    private static final JDBCClass jdbc = new JDBCClass();
 
     public void onUpdateReceived(Update update) {
-
-
         SendMessage message = new SendMessage();
-
-        if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("/start")) {
-            message.setChatId(update.getMessage().getChatId());
-            message.setText("Пришли фото состава или ингридиент, про который хотел узнать");
-
-            logger.debug("User: " + update.getMessage().getFrom().getUserName() + " wrote:" + update.getMessage().getText());
-
-        } else if (update.hasMessage() && update.getMessage().hasPhoto()) {
-
-            logger.debug("User: " + update.getMessage().getFrom().getUserName() + " sent a photo");
-
-            long chat_id = update.getMessage().getChatId();
-            SendPhoto sendPhoto = new SendPhoto();
-            List<PhotoSize> photos = update.getMessage().getPhoto();
-            GetFile getFileRequest = new GetFile();
-            getFileRequest.setFileId(photos.get(photos.size() - 1).getFileId());// index 2 - the quality of the photo, what we need
-            File file;
-            try {
-                file = execute(getFileRequest);
-            } catch (TelegramApiException e) {
-                logger.error(e.getStackTrace());
-                return;
-            }
-            URL url;
-            BufferedImage image;
-            try {
-                url = new URL(file.getFileUrl(this.getBotToken()));
-                image = ImageIO.read(url);
-            } catch (IOException e) {
-                logger.error(e.getStackTrace());
-                return;
-            }
-            String tesseractResult = "Original Photo: \n"+ tesseractProcessing.doOcr(image)+"\n";
-            BufferedImage processedImage = PhotoProcessing.toBlackAndWhite(image);
-            String tesseractResultBlackAndWhite = "Black And White:\n" + tesseractProcessing.doOcr(processedImage);
-            SendMessage sendMessage1 = new SendMessage().setChatId(chat_id).setText(tesseractResult);
-            SendMessage sendMessage2 =new SendMessage().setChatId(chat_id).setText(tesseractResultBlackAndWhite);
-            try {
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                ImageIO.write(processedImage,"jpg", os);
-                InputStream fis = new ByteArrayInputStream(os.toByteArray());
-                sendPhoto.setChatId(chat_id).setPhoto("test", fis );
-                execute(sendPhoto);
-                execute(sendMessage1);
-                execute(sendMessage2);
-
-            } catch (TelegramApiException | IOException e) {
-                logger.error(e.getStackTrace());
-            }
-
+        String answer = "";
+        try {
+            answer = jdbc.databaseQuery(update.getMessage().getText());
+        } catch (SQLException e) {
+            logger.warn(e.getStackTrace());
         }
+        if (answer.isEmpty()) {
+            answer = "Нет такой добавки в нашей базе.";
+            logger.info("Нет такой добавки в базе." + update.getMessage().getText());
+        }
+
+        if (update.getMessage().hasText()) {
+
+            message.setChatId(update.getMessage().getChatId()).setText(answer);
+
+            try {
+                execute(message);
+            } catch (TelegramApiException e) {
+                logger.warn(e.getStackTrace());
+            }
+        }
+
     }
 
 
@@ -99,7 +58,7 @@ public class TestBot extends TelegramLongPollingBot {
         try {
             telegramBotsApi.registerBot(new TestBot());
         } catch (TelegramApiRequestException e) {
-            e.printStackTrace();
+            logger.error(e.getStackTrace());
         }
     }
 }
